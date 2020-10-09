@@ -29,6 +29,9 @@ export class RandomForestBase {
    * @param {boolean} [options.isClassifier] - boolean to check if is a classifier or regression model (used by subclasses).
    * @param {boolean} [options.useSampleBagging] - use bagging over training samples.
    * @param {boolean} [options.noOOB] - don't calculate Out-Of-Bag predictions.
+   * @param {number} [options.maxSamples] - the number of samples used on each estimator, only used when useSampleBagging=0
+   *        * if is an integer it selects maxFeatures elements over the sample features.
+   *        * if is a float between (0, 1), it takes the percentage of features.
    * @param {object} model - for load purposes.
    */
   constructor(options, model) {
@@ -43,6 +46,7 @@ export class RandomForestBase {
       this.indexes = model.indexes;
       this.useSampleBagging = model.useSampleBagging;
       this.noOOB = true;
+      this.maxSamples = model.maxSamples;
 
       let Estimator = this.isClassifier ? DTClassifier : DTRegression;
       this.estimators = model.estimators.map((est) => Estimator.load(est));
@@ -55,6 +59,7 @@ export class RandomForestBase {
       this.seed = options.seed;
       this.useSampleBagging = options.useSampleBagging;
       this.noOOB = options.noOOB;
+      this.maxSamples = options.useSampleBagging;
     }
   }
 
@@ -104,6 +109,7 @@ export class RandomForestBase {
             trainingSet,
             trainingValues,
             currentSeed,
+            this.maxSamples,
           )
         : {
             X: trainingSet,
@@ -218,6 +224,7 @@ export class RandomForestBase {
       seed: this.seed,
       estimators: this.estimators.map((est) => est.toJSON()),
       useSampleBagging: this.useSampleBagging,
+      nSamples: this.maxSamples,
     };
   }
 }

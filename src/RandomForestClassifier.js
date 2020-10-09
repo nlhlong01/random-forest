@@ -5,7 +5,8 @@ import { RandomForestBase } from './RandomForestBase';
 const defaultOptions = {
   maxFeatures: 1.0,
   replacement: true,
-  nEstimators: 50,
+  nEstimators: 10,
+  selectionMethod: 'mode',
   seed: 42,
   useSampleBagging: true,
   noOOB: false,
@@ -27,16 +28,32 @@ export class RandomForestClassifier extends RandomForestBase {
    * @param {number} [options.seed=42] - seed for feature and samples selection, must be a 32-bit integer.
    * @param {number} [options.nEstimators=50] - number of estimator to use.
    * @param {object} [options.treeOptions={}] - options for the tree classifier, see [ml-cart]{@link https://mljs.github.io/decision-tree-cart/}
-   * @param {boolean} [options.useSampleBagging=true] - use bagging over training samples.
+   * @param {string} [options.selectionMethod="mean"] - the way to calculate the prediction from estimators, "mean", "median" and "mode" are supported.
+   * @param {boolean} [options.useSampleBagging=false] - use bagging over training samples.
    * @param {object} model - for load purposes.
    */
   constructor(options, model) {
     if (options === true) {
       super(true, model.baseModel);
+      this.selectionMethod = model.selectionMethod;
     } else {
       options = Object.assign({}, defaultOptions, options);
+
+      if (
+        !(
+          options.selectionMethod === 'mean' ||
+          options.selectionMethod === 'median' ||
+          options.selectionMethod === 'mode'
+        )
+      ) {
+        throw new RangeError(
+          `Unsupported selection method ${options.selectionMethod}`,
+        );
+      }
+
       options.isClassifier = true;
       super(options);
+      this.selectionMethod = options.selectionMethod;
     }
   }
 
@@ -57,6 +74,7 @@ export class RandomForestClassifier extends RandomForestBase {
     let baseModel = super.toJSON();
     return {
       baseModel: baseModel,
+      selectionMethod: this.selectionMethod,
       name: 'RFClassifier',
     };
   }
