@@ -20,10 +20,8 @@ function getRandomInt(min, max) {
 export function examplesBaggingWithReplacement(
   trainingSet,
   trainingValue,
-  maxSamples,
+  nSamples,
 ) {
-  const nSamples = Math.floor(maxSamples * trainingSet.rows);
-
   let Xr = new Array(nSamples);
   let yr = new Array(nSamples);
 
@@ -64,26 +62,26 @@ export function examplesBaggingWithReplacement(
  * selects n features from the training set with or without replacement, returns the new training set and the indexes used.
  * @ignore
  * @param {Matrix} trainingSet
- * @param {number} n - features.
+ * @param {number} nFeatures - features.
  * @param {boolean} replacement
  * @param {number} seed - seed for the random selection, must be a 32-bit integer.
  * @return {object}
  */
-export function featureBagging(trainingSet, n, replacement) {
-  if (trainingSet.columns < n) {
+export function featureBagging(trainingSet, nFeatures, replacement) {
+  if (trainingSet.columns < nFeatures) {
     throw new RangeError(
       'N should be less or equal to the number of columns of X',
     );
   }
 
   // Returned matrix
-  let toRet = new Matrix(trainingSet.rows, n);
+  let toRet = new Matrix(trainingSet.rows, nFeatures);
   let usedIndex;
   let index;
 
   if (replacement) {
-    usedIndex = new Array(n);
-    for (let i = 0; i < n; ++i) {
+    usedIndex = new Array(nFeatures);
+    for (let i = 0; i < nFeatures; ++i) {
       // Select a random feature
       index = getRandomInt(0, trainingSet.columns - 1);
       usedIndex[i] = index;
@@ -92,7 +90,7 @@ export function featureBagging(trainingSet, n, replacement) {
   } else {
     usedIndex = new Set();
     index = getRandomInt(0, trainingSet.columns - 1);
-    for (let i = 0; i < n; ++i) {
+    for (let i = 0; i < nFeatures; ++i) {
       // make sure the next selected feature is different
       while (usedIndex.has(index)) {
         index = getRandomInt(0, trainingSet.columns - 1);

@@ -3,8 +3,9 @@ import arrayMode from 'ml-array-mode';
 import { RandomForestBase } from './RandomForestBase';
 
 const defaultOptions = {
-  maxFeatures: 1.0,
   replacement: true,
+  maxSamples: 0.8,
+  maxFeatures: 1.0,
   nEstimators: 10,
   selectionMethod: 'mode',
   seed: 42,
