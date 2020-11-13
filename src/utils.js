@@ -15,11 +15,13 @@ function getRandomInt(min, max) {
  * @param {Matrix} trainingSet
  * @param {Array} trainingValue
  * @param {number} seed - seed for the random selection, must be a 32-bit integer.
+ * @param {number} nSamples - samples.
  * @return {object} with new X and y.
  */
 export function examplesBaggingWithReplacement(
   trainingSet,
   trainingValue,
+  seed,
   nSamples,
 ) {
   let Xr = new Array(nSamples);
@@ -67,7 +69,7 @@ export function examplesBaggingWithReplacement(
  * @param {number} seed - seed for the random selection, must be a 32-bit integer.
  * @return {object}
  */
-export function featureBagging(trainingSet, nFeatures, replacement) {
+export function featureBagging(trainingSet, nFeatures, replacement, seed) {
   if (trainingSet.columns < nFeatures) {
     throw new RangeError(
       'N should be less or equal to the number of columns of X',

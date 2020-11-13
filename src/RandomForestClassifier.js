@@ -43,7 +43,6 @@ export class RandomForestClassifier extends RandomForestBase {
       if (
         !(
           options.selectionMethod === 'mean' ||
-          options.selectionMethod === 'median' ||
           options.selectionMethod === 'mode'
         )
       ) {

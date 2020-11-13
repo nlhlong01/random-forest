@@ -51,7 +51,6 @@ export class RandomForestBase {
       this.indexes = model.indexes;
       this.useSampleBagging = model.useSampleBagging;
       this.noOOB = true;
-      this.maxSamples = model.maxSamples;
 
       let Estimator = this.isClassifier ? DTClassifier : DTRegression;
       this.estimators = model.estimators.map((est) => Estimator.load(est));
@@ -65,7 +64,6 @@ export class RandomForestBase {
       this.seed = options.seed;
       this.useSampleBagging = options.useSampleBagging;
       this.noOOB = options.noOOB;
-      this.maxSamples = options.useSampleBagging;
     }
   }
 
