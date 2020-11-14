@@ -199,7 +199,10 @@ export class RandomForestBase {
       predictions[i] = this.selection(predictionValues.getRow(i));
     }
 
-    return predictions;
+    return {
+      predictions: predictions,
+      predictionValues: predictionValues.to2DArray(),
+    };
   }
 
   /**

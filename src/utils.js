@@ -5,10 +5,6 @@ export function checkFloat(n) {
   return n > 0.0 && n <= 1.0;
 }
 
-function getRandomInt(min, max) {
-  return Math.round(Math.random() * (max - min) + min);
-}
-
 /**
  * Select n with replacement elements on the training set and values, where n is the size of the training set.
  * @ignore
@@ -24,6 +20,18 @@ export function examplesBaggingWithReplacement(
   seed,
   nSamples,
 ) {
+  let engine;
+  let distribution = Random.integer(0, trainingSet.rows - 1);
+  if (seed === undefined) {
+    engine = Random.MersenneTwister19937.autoSeed();
+  } else if (Number.isInteger(seed)) {
+    engine = Random.MersenneTwister19937.seed(seed);
+  } else {
+    throw new RangeError(
+      `Expected seed must be undefined or integer not ${seed}`,
+    );
+  }
+
   let Xr = new Array(nSamples);
   let yr = new Array(nSamples);
 
@@ -31,7 +39,7 @@ export function examplesBaggingWithReplacement(
   let oobN = trainingSet.rows;
 
   for (let i = 0; i < nSamples; ++i) {
-    let index = getRandomInt(0, nSamples - 1);
+    let index = distribution(engine);
     Xr[i] = trainingSet.getRow(index);
     yr[i] = trainingValue[index];
 
@@ -56,7 +64,7 @@ export function examplesBaggingWithReplacement(
     y: yr,
     Xoob: new Matrix(Xoob),
     ioob,
-    // seed: engine.next(),
+    seed: engine.next(),
   };
 }
 
@@ -76,26 +84,38 @@ export function featureBagging(trainingSet, nFeatures, replacement, seed) {
     );
   }
 
+  let distribution = Random.integer(0, trainingSet.columns - 1);
+  let engine;
+  if (seed === undefined) {
+    engine = Random.MersenneTwister19937.autoSeed();
+  } else if (Number.isInteger(seed)) {
+    engine = Random.MersenneTwister19937.seed(seed);
+  } else {
+    throw new RangeError(
+      `Expected seed must be undefined or integer not ${seed}`,
+    );
+  }
+
   // Returned matrix
   let toRet = new Matrix(trainingSet.rows, nFeatures);
+
   let usedIndex;
   let index;
-
   if (replacement) {
     usedIndex = new Array(nFeatures);
     for (let i = 0; i < nFeatures; ++i) {
       // Select a random feature
-      index = getRandomInt(0, trainingSet.columns - 1);
+      index = distribution(engine);
       usedIndex[i] = index;
       toRet.setColumn(i, trainingSet.getColumn(index));
     }
   } else {
     usedIndex = new Set();
-    index = getRandomInt(0, trainingSet.columns - 1);
+    index = distribution(engine);
     for (let i = 0; i < nFeatures; ++i) {
       // make sure the next selected feature is different
       while (usedIndex.has(index)) {
-        index = getRandomInt(0, trainingSet.columns - 1);
+        index = distribution(engine);
       }
       toRet.setColumn(i, trainingSet.getColumn(index));
       usedIndex.add(index);
@@ -106,7 +126,7 @@ export function featureBagging(trainingSet, nFeatures, replacement, seed) {
   return {
     X: toRet,
     usedIndex: usedIndex,
-    // seed: engine.next(),
+    seed: engine.next(),
   };
 }
 
