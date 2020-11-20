@@ -10,18 +10,18 @@ describe('Random Forest Classifier', function () {
   );
 
   let options = {
-    nEstimators: 200,
-    maxSamples: 1,
+    seed: 3,
+    maxSamples: 1.0,
     maxFeatures: 0.8,
-    treeOptions: { maxDepth: 10 },
-    selectionMethod: 'mean',
+    replacement: true,
+    nEstimators: 25,
+    treeOptions: undefined, // default options for the decision tree
     useSampleBagging: true,
-    replacement: false,
   };
 
   let classifier = new RFClassifier(options);
   classifier.train(trainingSet, predictions);
-  let result = classifier.predict(trainingSet).predictions;
+  let result = classifier.predict(trainingSet);
 
   it('Random Forest Classifier with iris dataset', function () {
     const correct = result.reduce((previous, result, index) => {
@@ -36,7 +36,7 @@ describe('Random Forest Classifier', function () {
     let model = JSON.parse(JSON.stringify(classifier));
 
     let newClassifier = RFClassifier.load(model);
-    let newResult = newClassifier.predict(trainingSet).predictions;
+    let newResult = newClassifier.predict(trainingSet);
 
     for (let i = 0; i < result.length; ++i) {
       expect(newResult[i]).toBe(result[i]);
