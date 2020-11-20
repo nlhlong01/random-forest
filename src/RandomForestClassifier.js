@@ -1,8 +1,11 @@
+import arrayMode from 'ml-array-mode';
+
 import { RandomForestBase } from './RandomForestBase';
 
 const defaultOptions = {
-  maxFeatures: 1.0,
   replacement: true,
+  maxSamples: 1.0,
+  maxFeatures: 1.0,
   nEstimators: 50,
   seed: 42,
   useSampleBagging: true,
@@ -44,7 +47,7 @@ export class RandomForestClassifier extends RandomForestBase {
    * @return {number} prediction
    */
   selection(values) {
-    return mode(values);
+    return arrayMode(values);
   }
 
   /**
@@ -84,6 +87,7 @@ export class RandomForestClassifier extends RandomForestBase {
       sortedLabels.map((w) => (matrix[v] || {})[w] || 0),
     );
   }
+
   /**
    * Load a Decision tree classifier with the given model.
    * @param {object} model
@@ -123,18 +127,4 @@ export class RandomForestClassifier extends RandomForestBase {
 
     return predictions;
   }
-}
-
-/**
- * Return the most repeated element on the array.
- * @param {Array} arr
- * @return {number} mode
- */
-function mode(arr) {
-  return arr
-    .sort(
-      (a, b) =>
-        arr.filter((v) => v === a).length - arr.filter((v) => v === b).length,
-    )
-    .pop();
 }

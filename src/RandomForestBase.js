@@ -19,6 +19,9 @@ export class RandomForestBase {
    * Create a new base random forest for a classifier or regression model.
    * @constructor
    * @param {object} options
+   * @param {number} [options.maxSamples] - the number of samples used on each estimator, only used when useSampleBagging=0
+   *        * if is an integer it selects maxFeatures elements over the sample features.
+   *        * if is a float between (0, 1), it takes the percentage of features.
    * @param {number|String} [options.maxFeatures] - the number of features used on each estimator.
    *        * if is an integer it selects maxFeatures elements over the sample features.
    *        * if is a float between (0, 1), it takes the percentage of features.
@@ -29,17 +32,22 @@ export class RandomForestBase {
    * @param {boolean} [options.isClassifier] - boolean to check if is a classifier or regression model (used by subclasses).
    * @param {boolean} [options.useSampleBagging] - use bagging over training samples.
    * @param {boolean} [options.noOOB] - don't calculate Out-Of-Bag predictions.
+   * @param {number} [options.maxSamples] - the number of samples used on each estimator, only used when useSampleBagging=0
+   *        * if is an integer it selects maxFeatures elements over the sample features.
+   *        * if is a float between (0, 1), it takes the percentage of features.
    * @param {object} model - for load purposes.
    */
   constructor(options, model) {
     if (options === true) {
       this.replacement = model.replacement;
+      this.maxSamples = model.maxSamples;
       this.maxFeatures = model.maxFeatures;
       this.nEstimators = model.nEstimators;
       this.treeOptions = model.treeOptions;
       this.isClassifier = model.isClassifier;
       this.seed = model.seed;
-      this.n = model.n;
+      this.nSamples = model.nSamples;
+      this.nFeatures = model.nFeatures;
       this.indexes = model.indexes;
       this.useSampleBagging = model.useSampleBagging;
       this.noOOB = true;
@@ -48,6 +56,7 @@ export class RandomForestBase {
       this.estimators = model.estimators.map((est) => Estimator.load(est));
     } else {
       this.replacement = options.replacement;
+      this.maxSamples = options.maxSamples;
       this.maxFeatures = options.maxFeatures;
       this.nEstimators = options.nEstimators;
       this.treeOptions = options.treeOptions;
@@ -71,18 +80,34 @@ export class RandomForestBase {
     this.maxFeatures = this.maxFeatures || trainingSet.columns;
 
     if (Utils.checkFloat(this.maxFeatures)) {
-      this.n = Math.floor(trainingSet.columns * this.maxFeatures);
+      this.nFeatures = Math.floor(trainingSet.columns * this.maxFeatures);
     } else if (Number.isInteger(this.maxFeatures)) {
       if (this.maxFeatures > trainingSet.columns) {
         throw new RangeError(
           `The maxFeatures parameter should be less than ${trainingSet.columns}`,
         );
       } else {
-        this.n = this.maxFeatures;
+        this.nFeatures = this.maxFeatures;
       }
     } else {
       throw new RangeError(
         `Cannot process the maxFeatures parameter ${this.maxFeatures}`,
+      );
+    }
+
+    if (Utils.checkFloat(this.maxSamples)) {
+      this.nSamples = Math.floor(trainingSet.rows * this.maxSamples);
+    } else if (Number.isInteger(this.maxSamples)) {
+      if (this.maxSamples > trainingSet.rows) {
+        throw new RangeError(
+          `The maxSamples parameter should be less than ${trainingSet.rows}`,
+        );
+      } else {
+        this.nSamples = this.maxSamples;
+      }
+    } else {
+      throw new RangeError(
+        `Cannot process the maxSamples parameter ${this.maxSamples}`,
       );
     }
 
@@ -104,6 +129,7 @@ export class RandomForestBase {
             trainingSet,
             trainingValues,
             currentSeed,
+            this.nSamples,
           )
         : {
             X: trainingSet,
@@ -118,7 +144,12 @@ export class RandomForestBase {
       currentSeed = res.seed;
       let { Xoob, ioob } = res;
 
-      res = Utils.featureBagging(X, this.n, this.replacement, currentSeed);
+      res = Utils.featureBagging(
+        X,
+        this.nFeatures,
+        this.replacement,
+        currentSeed,
+      );
       X = res.X;
       currentSeed = res.seed;
 
@@ -171,6 +202,11 @@ export class RandomForestBase {
     return predictions;
   }
 
+  /**
+   * Predicts the output given the matrix to predict.
+   * @param {Matrix|Array} toPredict
+   * @return {MatrixTransposeView} predictions of estimators
+   */
   predictionValues(toPredict) {
     let predictionValues = new Array(this.nEstimators);
     toPredict = Matrix.checkMatrix(toPredict);
@@ -183,6 +219,7 @@ export class RandomForestBase {
       new WrapperMatrix2D(predictionValues),
     ));
   }
+
   /**
    * Returns the Out-Of-Bag predictions.
    * @return {Array} predictions
@@ -203,8 +240,10 @@ export class RandomForestBase {
   toJSON() {
     return {
       indexes: this.indexes,
-      n: this.n,
+      nSamples: this.nSamples,
+      nFeatures: this.nFeatures,
       replacement: this.replacement,
+      maxSamples: this.maxSamples,
       maxFeatures: this.maxFeatures,
       nEstimators: this.nEstimators,
       treeOptions: this.treeOptions,

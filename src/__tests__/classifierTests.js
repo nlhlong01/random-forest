@@ -11,6 +11,7 @@ describe('Random Forest Classifier', function () {
 
   let options = {
     seed: 3,
+    maxSamples: 1.0,
     maxFeatures: 0.8,
     replacement: true,
     nEstimators: 25,
