@@ -9,6 +9,7 @@ const selectionMethods = {
 };
 
 const defaultOptions = {
+  maxSamples: 1.0,
   maxFeatures: 1.0,
   replacement: false,
   nEstimators: 50,

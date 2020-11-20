@@ -23,7 +23,12 @@ describe('Utils', () => {
   });
 
   it('Examples bagging', () => {
-    let data = Utils.examplesBaggingWithReplacement(testX, testY);
+    let data = Utils.examplesBaggingWithReplacement(
+      testX,
+      testY,
+      undefined,
+      rows,
+    );
 
     expect(data.X).toBeInstanceOf(Matrix);
   });

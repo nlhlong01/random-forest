@@ -42,6 +42,7 @@ for (let i = 0; i < dataset.length; ++i) {
 
 let options = {
   seed: 3,
+  maxSamples: 1.0,
   maxFeatures: 2,
   replacement: false,
   nEstimators: 200,
